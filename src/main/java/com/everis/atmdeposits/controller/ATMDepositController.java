@@ -7,6 +7,7 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,7 +38,7 @@ public class ATMDepositController {
         }
     }*/
 
-    @PostMapping("/atm/deposits")
+    @PostMapping(value = "/atm/deposits",produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
     public Single<ATMDepositResponse> getDeposits(@RequestBody ATMDepositRequest request){
 
         try{
