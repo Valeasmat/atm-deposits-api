@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GlobalHandlerControllerAdviceTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">atmdeposits$com_everis_atmdeposits_controller_in_atmdeposits.exec</a> &gt; <a href="index.source.html" class="el_package">com.everis.atmdeposits.controller.advice</a> &gt; <span class="el_source">GlobalHandlerControllerAdviceTest.java</span></div><h1>GlobalHandlerControllerAdviceTest.java</h1><pre class="source lang-java linenums">package com.everis.atmdeposits.controller.advice;
+
+
+import com.everis.atmdeposits.exception.BlacklistException;
+import com.everis.atmdeposits.util.ErrorDetail;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.ResponseEntity;
+
+@ExtendWith(MockitoExtension.class)
+<span class="fc" id="L14">public class GlobalHandlerControllerAdviceTest {</span>
+
+    @InjectMocks
+    private GlobalHandlerControllerAdvice handlerControllerAdvice;
+
+    @Test
+    public void testBlacklistException(){
+<span class="fc" id="L21">        BlacklistException exception=new BlacklistException(&quot;error message&quot;);</span>
+<span class="fc" id="L22">        ResponseEntity&lt;ErrorDetail&gt; result=handlerControllerAdvice.blacklistException(exception);</span>
+<span class="fc" id="L23">        Assertions.assertNotNull(result);</span>
+<span class="fc" id="L24">        Assertions.assertEquals(exception.getMessage(),result.getBody().getMessage());</span>
+<span class="fc" id="L25">        Assertions.assertEquals(exception.getDate(),result.getBody().getDate());</span>
+<span class="fc" id="L26">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

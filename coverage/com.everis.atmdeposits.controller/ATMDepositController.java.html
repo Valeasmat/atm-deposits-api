@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ATMDepositController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">atmdeposits$com_everis_atmdeposits_controller_in_atmdeposits.exec</a> &gt; <a href="index.source.html" class="el_package">com.everis.atmdeposits.controller</a> &gt; <span class="el_source">ATMDepositController.java</span></div><h1>ATMDepositController.java</h1><pre class="source lang-java linenums">package com.everis.atmdeposits.controller;
+
+
+import com.everis.atmdeposits.clientapi.*;
+import com.everis.atmdeposits.dto.*;
+import com.everis.atmdeposits.exception.BlacklistException;
+import com.everis.atmdeposits.util.ErrorDetail;
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.swagger.annotations.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@RestController
+<span class="fc" id="L22">@Slf4j</span>
+<span class="fc" id="L23">@RequiredArgsConstructor</span>
+@Api(value = &quot;ATM Deposits API&quot;,description = &quot;Rest API to retrieve client's info&quot;)
+public class ATMDepositController {
+
+    private final PersonsClientApi personsClientApi;
+    private final FingerprintsClientApi fingerprintsClientApi;
+    private final ReniecClientApi reniecClientApi;
+    private final CardsClientApi cardsClientApi;
+    private final AccountsClientApi accountsClientApi;
+
+    @ApiOperation(value = &quot;Post request to retrieve client's info&quot;,
+            response = ATMDepositResponse.class,
+            produces = &quot;application/stream+json&quot;)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200,message = &quot;Successful operation&quot;,response = ATMDepositResponse.class),
+            @ApiResponse(code=401,message = &quot;Invalid access, client in blacklist&quot;,response = ErrorDetail.class)
+    })
+    @PostMapping(value = &quot;/atm/deposits&quot;,produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
+    public Single&lt;ATMDepositResponse&gt; getDeposits(
+            @ApiParam(&quot;Client's document number. Cannot be empty.&quot;) @RequestBody ATMDepositRequest request)
+            throws BlacklistException{
+
+        try{
+<span class="fc" id="L46">            Single&lt;PersonResponse&gt; personMaybeBlacklist= personsClientApi.getPersonInfo(request.getDocumentNumber());</span>
+<span class="fc" id="L47">            PersonResponse personResponse = personMaybeBlacklist.blockingGet();</span>
+<span class="fc" id="L48">        }catch (Exception e){</span>
+<span class="fc" id="L49">            throw new BlacklistException(&quot;Client is registered in a blacklist&quot;);</span>
+<span class="fc" id="L50">        }</span>
+
+
+<span class="fc" id="L53">        Observable&lt;ATMDepositResponse&gt; atmResponse = personsClientApi</span>
+<span class="fc" id="L54">                .getPersonInfo(request.getDocumentNumber())</span>
+<span class="fc" id="L55">                .toObservable()</span>
+<span class="fc" id="L56">                .map(p -&gt; {</span>
+<span class="fc" id="L57">                    List&lt;AccountNumber&gt; accountNumbers = new ArrayList&lt;&gt;();</span>
+                    //Response initialization
+<span class="fc" id="L59">                    ATMDepositResponse response = new ATMDepositResponse();</span>
+
+                    //Flag to validate fingerprints or reniec
+<span class="fc bfc" id="L62" title="All 2 branches covered.">                    if (p.getFingerprint()) {</span>
+<span class="fc" id="L63">                        response.setFingerprintEntityName(fingerprintsClientApi</span>
+<span class="fc" id="L64">                                .validateFingerprints(request)</span>
+<span class="fc" id="L65">                                .blockingGet()</span>
+<span class="fc" id="L66">                                .getEntityName());</span>
+                    } else {
+<span class="fc" id="L68">                        response.setFingerprintEntityName(reniecClientApi</span>
+<span class="fc" id="L69">                                .validateReniec(request)</span>
+<span class="fc" id="L70">                                .blockingGet()</span>
+<span class="fc" id="L71">                                .getEntityName());</span>
+
+                    }
+
+                    //reducing total amount of accounts
+<span class="fc" id="L76">                    Long totalAmount = cardsClientApi</span>
+<span class="fc" id="L77">                            .getCards(p.getDocument())</span>
+<span class="fc" id="L78">                            .toObservable()</span>
+<span class="fc" id="L79">                            .flatMap(list -&gt; Observable.fromIterable(list.getCards()))</span>
+<span class="fc" id="L80">                            .filter(Card::getActive)</span>
+<span class="fc" id="L81">                            .map(Card::getCardNumber)</span>
+<span class="fc" id="L82">                            .map(card -&gt; accountsClientApi</span>
+<span class="fc" id="L83">                                    .getAccounts(card)</span>
+<span class="fc" id="L84">                                    .toObservable())</span>
+<span class="fc" id="L85">                            .flatMap(Observable::wrap)</span>
+<span class="fc" id="L86">                            .doOnNext(account -&gt; {</span>
+                                //side effect to collect list of accounts
+<span class="fc" id="L88">                                accountNumbers.add(new AccountNumber(account.getAccountNumber()));</span>
+<span class="fc" id="L89">                            })</span>
+<span class="fc" id="L90">                            .map(AccountResponse::getAmount)</span>
+<span class="fc" id="L91">                            .reduce(Long::sum).blockingGet();</span>
+
+                    //set fields
+<span class="fc" id="L94">                    response.setValidAccounts(accountNumbers);</span>
+<span class="fc" id="L95">                    response.setCustomerAmount(totalAmount);</span>
+
+<span class="fc" id="L97">                    return response;</span>
+                });
+
+<span class="fc" id="L100">        return atmResponse.elementAt(0,new ATMDepositResponse());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
