@@ -12,6 +12,6 @@ public class GlobalHandlerControllerAdvice {
 
     @ExceptionHandler(BlacklistException.class)
     public ResponseEntity<ErrorDetail> blacklistException(BlacklistException e){
-        return new ResponseEntity<>(new ErrorDetail(e.getMessage(),e.getDate()), HttpStatus.OK);
+        return new ResponseEntity<>(new ErrorDetail(e.getMessage(),e.getDate()), HttpStatus.UNAUTHORIZED);
     }
 }

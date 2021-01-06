@@ -79,6 +79,11 @@
             <version>2.9.2</version>
         </dependency>
         <dependency>
+            <groupId>org.bitbucket.tek-nik</groupId>
+            <artifactId>spring-swagger-simplified</artifactId>
+            <version>1.0.9</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>

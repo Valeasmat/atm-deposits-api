@@ -11,19 +11,21 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
+
 @Configuration
 @EnableSwagger2
 public class SwaggerConfig {
     @Bean
     public Docket api() {
-        return new Docket(DocumentationType.SWAGGER_2)
+        return changeGlobalResponses(new Docket(DocumentationType.SWAGGER_2)
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("com.everis.atmdeposits"))
                 .paths(PathSelectors.any())
-                .build();
+                .build()
+                .apiInfo(metaData()));
     }
-
-    private ApiInfo metaData() {
+    @Bean
+    public ApiInfo metaData() {
         return new ApiInfoBuilder()
                 .title("ATM Deposits REST API")
                 .description("\"REST API to retrieve client's accounts information\"")
@@ -32,5 +34,11 @@ public class SwaggerConfig {
                 .licenseUrl("https://www.apache.org/licenses/LICENSE-2.0\"")
                 .contact(new Contact("Valeria Asmat", "http://valeasmat.com/about/", "jvaleriaasmat2dob@gmail.com"))
                 .build();
+    }
+
+
+    private Docket changeGlobalResponses(Docket docket){
+        docket=docket.useDefaultResponseMessages(false);
+        return docket;
     }
 }

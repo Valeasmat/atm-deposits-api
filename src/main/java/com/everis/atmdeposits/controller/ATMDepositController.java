@@ -4,11 +4,10 @@ package com.everis.atmdeposits.controller;
 import com.everis.atmdeposits.clientapi.*;
 import com.everis.atmdeposits.dto.*;
 import com.everis.atmdeposits.exception.BlacklistException;
+import com.everis.atmdeposits.util.ErrorDetail;
 import io.reactivex.Observable;
 import io.reactivex.Single;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -31,9 +30,17 @@ public class ATMDepositController {
     private final CardsClientApi cardsClientApi;
     private final AccountsClientApi accountsClientApi;
 
-    @ApiOperation(value = "Post request to retrieve client's info",response = ATMDepositResponse.class,produces = "application/json")
+    @ApiOperation(value = "Post request to retrieve client's info",
+            response = ATMDepositResponse.class,
+            produces = "application/stream+json")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200,message = "Successful operation",response = ATMDepositResponse.class),
+            @ApiResponse(code=401,message = "Invalid access, client in blacklist",response = ErrorDetail.class)
+    })
     @PostMapping(value = "/atm/deposits",produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
-    public Single<ATMDepositResponse> getDeposits(@ApiParam("Client's document number. Cannot be empty.") @RequestBody ATMDepositRequest request) throws BlacklistException{
+    public Single<ATMDepositResponse> getDeposits(
+            @ApiParam("Client's document number. Cannot be empty.") @RequestBody ATMDepositRequest request)
+            throws BlacklistException{
 
         try{
             Single<PersonResponse> personMaybeBlacklist= personsClientApi.getPersonInfo(request.getDocumentNumber());
@@ -77,7 +84,6 @@ public class ATMDepositController {
                                     .toObservable())
                             .flatMap(Observable::wrap)
                             .doOnNext(account -> {
-                                //log.info(account.getAccountNumber());
                                 //side effect to collect list of accounts
                                 accountNumbers.add(new AccountNumber(account.getAccountNumber()));
                             })
