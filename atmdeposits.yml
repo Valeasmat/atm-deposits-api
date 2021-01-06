@@ -1,0 +1,42 @@
+##Deploy
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: atm-deposits-api
+  labels:
+    app: atm-deposits-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: atm-deposits-api
+  template:
+    metadata:
+      labels:
+        app: atm-deposits-api
+    spec:
+      containers:
+        - name: atm-deposits-api
+          image: acrvmam03.azurecr.io/atm-deposits-api
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      imagePullSecrets:
+        - name: regcred
+---
+##Service
+kind: Service
+apiVersion: v1
+metadata:
+  name: atm-deposits-api
+spec:
+  selector:
+    app: atm-deposits-api
+  ports:
+    - port: 8880
+      targetPort: 8880
+  type: LoadBalancer

@@ -5,6 +5,9 @@ import com.everis.atmdeposits.clientapi.*;
 import com.everis.atmdeposits.dto.*;
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -19,6 +22,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
+@Api(value = "ATM Deposits API",description = "Rest API to retrieve client's info")
 public class ATMDepositController {
 
     private final PersonsClientApi personsClientApi;
@@ -27,19 +31,9 @@ public class ATMDepositController {
     private final CardsClientApi cardsClientApi;
     private final AccountsClientApi accountsClientApi;
 
-    /*
-    @GetMapping("/prueba")
-    public String prueba(){
-        try {
-            Single<PersonResponse> personInfo = personsClientApi.getPersonInfo("10000005");
-            return personInfo.blockingGet().toString();
-        } catch (Exception e){
-            return "error";
-        }
-    }*/
-
+    @ApiOperation(value = "Post request to retrieve client's info",response = ATMDepositResponse.class,produces = "application/json")
     @PostMapping(value = "/atm/deposits",produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
-    public Single<ATMDepositResponse> getDeposits(@RequestBody ATMDepositRequest request){
+    public Single<ATMDepositResponse> getDeposits(@ApiParam("Client's document number. Cannot be empty.") @RequestBody ATMDepositRequest request){
 
         try{
             Single<PersonResponse> personMaybeBlacklist= personsClientApi.getPersonInfo(request.getDocumentNumber());

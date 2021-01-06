@@ -12,15 +12,15 @@ import retrofit2.converter.gson.GsonConverterFactory;
 @Configuration
 public class RetrofitConfig {
 
-    @Value("${url.persons}")
+    @Value("${url.persons:}")
     private String personsUrl;
-    @Value("${url.accounts}")
+    @Value("${url.accounts:}")
     private String accountsUrl;
-    @Value("${url.cards}")
+    @Value("${url.cards:}")
     private String cardsUrl;
-    @Value("${url.fingerprints}")
+    @Value("${url.fingerprints:}")
     private String fingerprintsUrl;
-    @Value("${url.reniec}")
+    @Value("${url.reniec:}")
     private String reniecUrl;
 
     @Bean
