@@ -3,6 +3,7 @@ package com.everis.atmdeposits.controller;
 
 import com.everis.atmdeposits.clientapi.*;
 import com.everis.atmdeposits.dto.*;
+import com.everis.atmdeposits.exception.BlacklistException;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.swagger.annotations.Api;
@@ -11,7 +12,6 @@ import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,13 +33,13 @@ public class ATMDepositController {
 
     @ApiOperation(value = "Post request to retrieve client's info",response = ATMDepositResponse.class,produces = "application/json")
     @PostMapping(value = "/atm/deposits",produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
-    public Single<ATMDepositResponse> getDeposits(@ApiParam("Client's document number. Cannot be empty.") @RequestBody ATMDepositRequest request){
+    public Single<ATMDepositResponse> getDeposits(@ApiParam("Client's document number. Cannot be empty.") @RequestBody ATMDepositRequest request) throws Exception{
 
         try{
             Single<PersonResponse> personMaybeBlacklist= personsClientApi.getPersonInfo(request.getDocumentNumber());
             PersonResponse personResponse = personMaybeBlacklist.blockingGet();
         }catch (Exception e){
-            return Single.just(new ATMDepositResponse());
+            throw new BlacklistException("Client is registered in a blacklist",e);
         }
 
 
