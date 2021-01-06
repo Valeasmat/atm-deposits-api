@@ -37,6 +37,6 @@ spec:
   selector:
     app: atm-deposits-api
   ports:
-    - port: 8880
-      targetPort: 8880
+    - port: 8800
+      targetPort: 8800
   type: LoadBalancer

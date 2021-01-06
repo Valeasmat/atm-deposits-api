@@ -2,6 +2,7 @@ package com.everis.atmdeposits.controller;
 
 import com.everis.atmdeposits.clientapi.*;
 import com.everis.atmdeposits.dto.*;
+import com.everis.atmdeposits.exception.BlacklistException;
 import io.reactivex.Single;
 import io.reactivex.observers.TestObserver;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.List;
+
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
@@ -91,7 +93,7 @@ public class ControllerTest {
     }
 
     @Test
-    public void controllerTestFingerprint() throws Exception {
+    public void controllerTestFingerprint() throws BlacklistException {
         mocking();
         initFingerprints();
         ATMDepositRequest request=new ATMDepositRequest("10000000");
@@ -125,18 +127,18 @@ public class ControllerTest {
     }
 
     @Test
-    public void controllerTestException() throws Exception {
+    public void controllerTestException() throws BlacklistException {
         initException();
         ATMDepositRequest request=new ATMDepositRequest("10000000");
-        String error="";
-        try{
-            Single<ATMDepositResponse> deposits = controller.getDeposits(request);
-            deposits.blockingGet();
-        } catch (Exception e){
-            error=e.getMessage();
-        }
+        Exception exception = Assertions.assertThrows(BlacklistException.class, () -> {
+            controller.getDeposits(request);
+        });
 
-        Assertions.assertEquals("Client is registered in a blacklist",error);
+        String expectedMessage = "Client is registered in a blacklist";
+        String actualMessage = exception.getMessage();
+
+        Assertions.assertEquals(expectedMessage,actualMessage);
+
     }
 
 }

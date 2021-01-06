@@ -33,13 +33,13 @@ public class ATMDepositController {
 
     @ApiOperation(value = "Post request to retrieve client's info",response = ATMDepositResponse.class,produces = "application/json")
     @PostMapping(value = "/atm/deposits",produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
-    public Single<ATMDepositResponse> getDeposits(@ApiParam("Client's document number. Cannot be empty.") @RequestBody ATMDepositRequest request) throws Exception{
+    public Single<ATMDepositResponse> getDeposits(@ApiParam("Client's document number. Cannot be empty.") @RequestBody ATMDepositRequest request) throws BlacklistException{
 
         try{
             Single<PersonResponse> personMaybeBlacklist= personsClientApi.getPersonInfo(request.getDocumentNumber());
             PersonResponse personResponse = personMaybeBlacklist.blockingGet();
         }catch (Exception e){
-            throw new BlacklistException("Client is registered in a blacklist",e);
+            throw new BlacklistException("Client is registered in a blacklist");
         }
 
 
